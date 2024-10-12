@@ -14,7 +14,7 @@ from apkutils.axml import bytecode, public
 log = logging.getLogger("axml")
 log.setLevel(logging.CRITICAL)
 
-# log.setLevel(logging.DEBUG)
+log.setLevel(logging.DEBUG)
 # handler = logging.FileHandler("axml.log")
 # handler.setFormatter(
 #     logging.Formatter("%(levelname)s[%(name)s][%(lineno)d]: %(message)s")
@@ -677,10 +677,6 @@ class AXMLParser:
 
     def __init__(self, raw_buff, is_android_manifest=False):
         self._reset()
-
-        log.info(
-            "------------------------- 解析 AndroidManifest.xml 文件 ------------------------"
-        )  # noqa: E501
         self._valid = True
         self.axml_tampered = False
         self.buff = bytecode.BuffHandle(raw_buff)
@@ -725,8 +721,7 @@ class AXMLParser:
         # 解析下一个头 - String Pool Chunk
         try:
             header = ResChunkHeader(self.buff, expected_type=RES_STRING_POOL_TYPE)
-        except ResParserError as e:
-            log.error("Error parsing resource header of string pool: %s", e)
+        except ResParserError:
             self._valid = False
             return
 
@@ -1269,11 +1264,8 @@ class AXMLPrinter:
                 comment = self.axml.comment
                 if comment:
                     if self.root is None:
-                        log.warning(
-                            "Can not attach comment with content '{}' without root!".format(  # noqa: E501
-                                comment
-                            )
-                        )
+                        print("Can not attach comment without root!")
+                        print("Comment: ", comment)
                     else:
                         cur[-1].append(etree.Comment(comment))
 
@@ -1285,11 +1277,7 @@ class AXMLPrinter:
                     value = self._fix_value(self._get_attribute_value(i))
 
                     if "{}{}".format(uri, name) in elem.attrib:
-                        log.warning(
-                            "Duplicate attribute '{}{}'! Will overwrite!".format(
-                                uri, name
-                            )
-                        )
+                        print("Duplicate attribute '{}'!".format(uri + name))
                     elem.set("{}{}".format(uri, name), value)
 
                 if self.root is None:
@@ -1297,7 +1285,7 @@ class AXMLPrinter:
                 else:
                     if not cur:
                         # looks like we lost the root?
-                        log.error(
+                        print(
                             "No more elements available to attach to! Is the XML malformed?"
                         )
                         break
@@ -1306,9 +1294,7 @@ class AXMLPrinter:
 
             if _type == END_TAG:
                 if not cur:
-                    log.warning(
-                        "Too many END_TAG! No more elements available to attach to!"
-                    )
+                    print("Too many END_TAG! No more elements available to attach to!")
 
                 name = self.axml.name
                 uri = self._print_namespace(self.axml.namespace)
@@ -1319,6 +1305,8 @@ class AXMLPrinter:
                             self.axml.name, self.axml.m_lineNumber
                         )
                     )
+                    print("Closing tag '{}' does not match current stack! ".format(tag))
+
                 cur.pop()
             if _type == TEXT:
                 log.debug("TEXT for {}".format(cur[-1]))
@@ -1326,9 +1314,7 @@ class AXMLPrinter:
             if _type == END_DOCUMENT:
                 # Check if all namespace mappings are closed
                 if len(self.axml.namespaces) > 0:
-                    log.warning(
-                        "Not all namespace mappings were closed! Malformed AXML?"
-                    )
+                    print("Not all namespace mappings were closed!")
                 break
 
     def get_buff(self):
@@ -1469,10 +1455,10 @@ class AXMLPrinter:
         """
         if not self.__charrange or not self.__replacement:
             self.__charrange = re.compile(
-                "^[\u0020-\uD7FF\u0009\u000A\u000D\uE000-\uFFFD\U00010000-\U0010FFFF]*$"
+                "^[\u0020-\ud7ff\u0009\u000a\u000d\ue000-\ufffd\U00010000-\U0010ffff]*$"
             )
             self.__replacement = re.compile(
-                "[^\u0020-\uD7FF\u0009\u000A\u000D\uE000-\uFFFD\U00010000-\U0010FFFF]"
+                "[^\u0020-\ud7ff\u0009\u000a\u000d\ue000-\ufffd\U00010000-\U0010ffff]"
             )
 
         # Reading string until \x00. This is the same as aapt does.
@@ -1868,9 +1854,9 @@ class ARSCParser:
                             if entry != -1:
                                 ate = self.packages[package_name][nb + 3 + nb_i]
 
-                                self.resource_values[ate.mResId][
-                                    a_res_type.config
-                                ] = ate
+                                self.resource_values[ate.mResId][a_res_type.config] = (
+                                    ate
+                                )
                                 self.resource_keys[package_name][a_res_type.get_type()][
                                     ate.get_value()
                                 ] = ate.mResId

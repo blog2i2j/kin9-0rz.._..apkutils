@@ -1,5 +1,6 @@
 import binascii
 import io
+import logging
 import re
 import traceback
 

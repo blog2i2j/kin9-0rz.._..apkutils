@@ -897,7 +897,7 @@ class ZipExtFile(io.BufferedIOBase):
             return
         self._running_crc = crc32(newdata, self._running_crc) & 0xFFFFFFFF
         # Check the CRC if we're at the end of the file
-        # NOTE Android并不验证CRC
+        # NOTE: Android并不验证CRC
         # 部分APK把CRC抹掉，解析的时候，不验证CRC
         # if self._eof and self._running_crc != self._expected_crc:
         #     raise BadZipFile("Bad CRC-32 for file %r" % self.name)
@@ -1144,7 +1144,7 @@ class ZipFile:
         offset_cd = endrec[_ECD_OFFSET]  # offset of central directory
         self._comment = endrec[_ECD_COMMENT]  # archive comment
 
-        # NOTE APK文件只有一个，不可能存在额外数据。
+        # NOTE: APK文件只有一个，不可能存在额外数据。
         # "concat" is zero, unless zip was concatenated to another file
         # concat = endrec[_ECD_LOCATION] - size_cd - offset_cd
         # if endrec[_ECD_SIGNATURE] == stringEndArchive64:
@@ -1197,7 +1197,7 @@ class ZipFile:
                 x.file_size,
             ) = centdir[1:12]
 
-            # NOTE 忽略版本 通过提升版本对抗解压软件
+            # NOTE: 忽略版本 通过提升版本对抗解压软件
             # if x.extract_version > MAX_EXTRACT_VERSION:
             #     raise NotImplementedError(
             #         "zip file version %.1f" % (x.extract_version / 10)
@@ -1338,42 +1338,36 @@ class ZipFile:
                 raise BadZipFile("Truncated file header")
 
             fheader = struct.unpack(structFileHeader, fheader)
-            # print(fheader)
 
             if fheader[_FH_SIGNATURE] != stringFileHeader:
                 raise BadZipFile("Bad magic number for file header")
 
-            # NOTE 注意：头部的文件长度可能会被修改
-            len_fname = fheader[_FH_FILENAME_LENGTH]
-            if len_fname > 256:
-                # 自动修正文件名长度，但是，不能保证解压成功
-                len_fname = len(zinfo.orig_filename)
-
-            fname = zef_file.read(len_fname)
+            # NOTE: 文件名用不上
+            # fname = zef_file.read(fheader[_FH_FILENAME_LENGTH])
+            zef_file.read(fheader[_FH_FILENAME_LENGTH])
 
             if fheader[_FH_EXTRA_FIELD_LENGTH]:
                 zef_file.read(fheader[_FH_EXTRA_FIELD_LENGTH])
 
             # zinfo.flag_bits ^= zinfo.flag_bits % 2
-
-            # NOTE 添加patched数据flag，对抗
+            # NOTE: 添加patched数据flag，对抗
             # if zinfo.flag_bits & 0x20:
             #     # Zip 2.7: compressed patched data
             #     raise NotImplementedError("compressed patched data (flag bit 5)")
 
-            # NOTE 添加加密flag，对抗
+            # NOTE: 添加加密flag，对抗
             # if zinfo.flag_bits & 0x40:
             # # strong encryption
             # raise NotImplementedError("strong encryption (flag bit 6)")
 
-            if zinfo.flag_bits & 0x800:
-                # UTF-8 filename
-                # NOTE 如果有错误，则忽略
-                fname_str = fname.decode("utf-8", errors="ignore")
-            else:
-                fname_str = fname.decode("cp437")
+            # NOTE: 利用名字编码，对抗
+            # if zinfo.flag_bits & 0x800:
+            #     # UTF-8 filename
+            #     fname_str = fname.decode("utf-8", errors="ignore")
+            # else:
+            #     fname_str = fname.decode("cp437")
 
-            # TODO 存在编码问题 (need samples)
+            # NOTE: 利用名字不一样，对抗
             # if fname_str != zinfo.orig_filename:
             #     raise BadZipFile(
             #         "File name in directory %r and header %r differ."
@@ -1381,7 +1375,7 @@ class ZipFile:
             #     )
 
             return ZipExtFile(zef_file, mode, zinfo, None, True)
-        except Exception as ignore:
+        except Exception:
             zef_file.close()
             raise
 
@@ -1465,6 +1459,7 @@ class ZipFile:
                 os.mkdir(targetpath)
             return targetpath
 
+        print(targetpath, "->", pwd)
         with self.open(member, pwd=pwd) as source, open(targetpath, "wb") as target:
             shutil.copyfileobj(source, target)
 

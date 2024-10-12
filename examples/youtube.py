@@ -7,7 +7,7 @@ file_path = os.path.abspath(
 )
 
 # TODO 解析还不够完美
-apk = APK.from_file(file_path).parse_resouce()
+apk = APK.from_file(file_path).parse_resource()
 arsc = apk.get_arsc()
 package = arsc.get_packages_names()[0]
 print(package)
