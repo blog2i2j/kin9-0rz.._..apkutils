@@ -10,6 +10,7 @@ def test_get_dex_strings_refx():
 
     with APK.from_file(file_path).parse_dex() as apk:
         result = apk.get_dex_strings_refx()
+        assert result is not None
         for clsname in result:
             for mtdname in result[clsname]:
                 if b"hellojni" in result[clsname][mtdname]:

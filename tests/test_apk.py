@@ -8,7 +8,7 @@ class TestAPK(object):
         file_path = os.path.abspath(
             os.path.join(os.path.dirname(__file__), "fixtures", "test.zip")
         )
-        self.apk = APK.from_file(file_path).parse_dex().parse_resouce()
+        self.apk = APK.from_file(file_path).parse_dex().parse_resource()
 
     def teardown_class(self):
         self.apk.close()

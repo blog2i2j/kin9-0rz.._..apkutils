@@ -1,5 +1,9 @@
-[tool.poetry]
-authors = ["kin9-0rz <kin9-0rz@outlook.com>"]
+[project]
+name = "apkutils"
+version = "1.5.4"
+description = "一个APK解析库"
+authors = [{ name = "kin9-0rz", email = "kin9-0rz@outlook.com" }]
+readme = "README.md"
 classifiers = [
   "Programming Language :: Python :: 3.8",
   "Programming Language :: Python :: 3.9",
@@ -8,34 +12,34 @@ classifiers = [
   "Natural Language :: Chinese (Simplified)",
   "Development Status :: 3 - Alpha",
 ]
-description = "一个APK解析库"
-license = "MIT"
-name = "apkutils"
-repository = "https://gitee.com/kin9-0rz/apkutils"
-version = "1.5.3"
-readme = "README.md"
+dependencies = [
+  "Pygments>=2.12.0,<3.0.0",
+  "beautifulsoup4>=4.10.0,<5.0.0",
+  "click>=8.0.3,<9.0.0",
+  "cryptography>=39.0.1",
+  "lxml>=5.0.0",
+  "pyelftools>=0.27,<0.28",
+  "pyftype>=1.2.4,<2.0.0",
+  "colorlog>=6.7.0,<7.0.0",
+]
+requires-python = ">=3.8"
 
-[tool.poetry.dependencies]
-Pygments = "^2.12.0"
-beautifulsoup4 = "^4.10.0"
-click = "^8.0.3"
-cryptography = ">=39.0.1"
-lxml = "^4.6.4"
-pyelftools = "^0.27"
-pyftype = "^1.2.4"
-python = ">=3.8"
-colorlog = "^6.7.0"
+[project.urls]
+Repository = "https://gitee.com/kin9-0rz/apkutils"
 
-[tool.poetry.dev-dependencies]
-black = { version = "^22.3.0", allow-prereleases = true }
-poetry2setup = "^1.0.0"
-pytest = "^6.2.5"
-pytest-benchmark = "^3.4.1"
-tox = "^3.24.4"
+[tool]
+
+[tool.rye]
+managed = true
+dev-dependencies = ["pytest>=8.3.3", "pytest-benchmark>=4.0.0"]
+
+[tool.hatch]
+[tool.hatch.metadata]
+allow-direct-references = true
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/apkutils"]
 
 [build-system]
-build-backend = "poetry.core.masonry.api"
-requires = ["poetry-core>=1.0.0"]
-
-[tool.poetry.scripts]
-apkutils = "apkutils.cli:main"
+build-backend = "hatchling.build"
+requires = ["hatchling"]

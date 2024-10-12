@@ -35,21 +35,21 @@ NS_ANDROID = "{{{}}}".format(NS_ANDROID_URI)  # Namespace as used by etree
 class APK:
     def __init__(self):
         self.apk_path = None
-        self.dex_files = None
+        self.dex_files = []
         self.children = None
-        self.manifest = None
+        self.manifest = ""
         self._dex_strings = None  # 字符串
         self._dex_hex_strings = None  # 16进制字符串
         self.opcodes = None
         self.certs = {}
         self.arsc = None
-        self.strings_refx = None
+        self.strings_refx = []
         self._app_icons = []
         self._methods = None
         self.trees = None  # 代码结构序列字典
         self._classes = None
         self._methods_refx = None
-        self._package_name = None  # 包名
+        self._package_name = ""  # 包名
         self._app_name = None
         self._application_icon_addr = None
 
@@ -95,6 +95,8 @@ class APK:
     # * -------------------------- 清单 --------------------------------------
 
     def get_manifest(self):
+        if self.manifest is None:
+            self._init_manifest()
         return self.manifest
 
     def _init_manifest(self):
@@ -125,9 +127,11 @@ class APK:
         )
 
         soup = BeautifulSoup(self.manifest, "lxml-xml")
-        self._package_name = soup.manifest.get("package", "")
-        self._version_code = soup.manifest.get("android:versionCode")
-        self._version_name = soup.manifest.get("android:versionName")
+        manifest_tag = soup.manifest
+        if manifest_tag is not None:
+            self._package_name = manifest_tag.get("package", "")
+            self._version_code = manifest_tag.get("android:versionCode")
+            self._version_name = manifest_tag.get("android:versionName")
 
         uses_sdk = soup.select_one("uses-sdk")
         if uses_sdk is None:
