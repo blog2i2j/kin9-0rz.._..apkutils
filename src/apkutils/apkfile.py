@@ -1447,23 +1447,13 @@ class ZipFile:
             # filter illegal characters on Windows
             arcname = self._sanitize_windows_name(arcname, os.path.sep)
 
-        # NOTE 文件名和目录名超过255无法写入
-        arr = arcname.split(os.path.sep)
-        # name = arr[-1]
-        for item in arr:
-            # FIXME 对于文件名过长的文件，无法解压，暂时跳过
-            if len(item) > 255:
-                print("{} 文件名太长，跳过解压。".format(os.path.sep.join(arr)))
-                return
-        # if len(name) > 255:
-        # extension = os.path.splitext(name)[1]
-        # name = "too_long_" + str(crc32(name.encode("utf-8"))) + extension
-        # arr = arr[:-1]
-        # arr.append(name)
-        # arcname = os.path.sep.join(arr)
-
         targetpath = os.path.join(targetpath, arcname)
         targetpath = os.path.normpath(targetpath)
+
+        sep_size = targetpath.count(os.path.sep)
+        if sep_size > 255:
+            print(f"跳过(路径过长): {targetpath}")
+            return
 
         # Create all upper directories if necessary.
         upperdirs = os.path.dirname(targetpath)
