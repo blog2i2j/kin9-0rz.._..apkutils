@@ -1,12 +1,11 @@
-import os.path
 import re
 
 from apkutils import gdiff, wildcard
 from collections import OrderedDict
-import xmltodict, json
+import xmltodict
+
 
 class APK_Intersection:
-
     def __init__(self, apks):
         self.apks = apks
 
@@ -49,8 +48,7 @@ class APK_Intersection:
         self.label_matcher = re.compile(label_pattern)
 
         component_permission_pattern = r'<(\w+)\s[^>]*?:permission="([^"]*?)"'
-        self.component_permission_matcher = re.compile(
-            component_permission_pattern)
+        self.component_permission_matcher = re.compile(component_permission_pattern)
 
         data_scheme_pattern = r'<data\s[^>]*?:scheme="([^"]*?)"'
         self.data_scheme_matcher = re.compile(data_scheme_pattern)
@@ -88,12 +86,12 @@ class APK_Intersection:
         """
         dmp = gdiff.diff_match_patch()
         diff = dmp.diff_main(one, two)
-        s = ''
+        s = ""
         for a, b in diff:
             if a == 0:
                 s += b
             else:
-                s += '*'
+                s += "*"
 
         return s
 
@@ -102,7 +100,7 @@ class APK_Intersection:
         for item in self.apks:
             mani = item.get_mini_mani()
             if not mani:
-                print(item.apk_path, 'not manifest')
+                print(item.apk_path, "not manifest")
                 continue
 
             if not result:
@@ -115,12 +113,12 @@ class APK_Intersection:
     def intersect_manifest_tag_num(self):
         result = {
             # min max
-            'uses-permission': [0xFFFFFFFF, 0],
-            'activity': [0xFFFFFFFF, 0],
-            'receiver': [0xFFFFFFFF, 0],
-            'service': [0xFFFFFFFF, 0],
-            'provider': [0xFFFFFFFF, 0],
-            'version_code': [0xFFFFFFFF, 0],
+            "uses-permission": [0xFFFFFFFF, 0],
+            "activity": [0xFFFFFFFF, 0],
+            "receiver": [0xFFFFFFFF, 0],
+            "service": [0xFFFFFFFF, 0],
+            "provider": [0xFFFFFFFF, 0],
+            "version_code": [0xFFFFFFFF, 0],
         }
         for item in self.apks:
             nums = item.get_manifest_tag_numbers()
@@ -133,7 +131,6 @@ class APK_Intersection:
                 if mm[1] < value:
                     mm[1] = value
                 result[key] = mm
-        
 
         return result, nums
 
@@ -142,18 +139,18 @@ class APK_Intersection:
         words = set()
         size = len(s)
 
-        for offset in range(1, size+1):
-            for i in range(0, size+1-offset):
-                word = '.'.join(s[i:i+offset])
-                start = ''
-                end = ''
+        for offset in range(1, size + 1):
+            for i in range(0, size + 1 - offset):
+                word = ".".join(s[i : i + offset])
+                start = ""
+                end = ""
                 if i > 0:
-                    start = '*.'
+                    start = "*."
                 if size - offset > i:
-                    end = '.*'
+                    end = ".*"
                 words.add(start + word + end)
         return words
-    
+
     @staticmethod
     def process_mani(mani):
         j = xmltodict.parse(mani)
@@ -165,7 +162,7 @@ class APK_Intersection:
                 if isinstance(item, OrderedDict):
                     parseOrderedDict(node, item)
                 else:
-                    print('list', node, item)
+                    print("list", node, item)
 
         def parseOrderedDict(node, od):
             for k, v in od.items():
@@ -180,9 +177,9 @@ class APK_Intersection:
                 else:
                     print(type(v))
                     print(node, k, v)
-        
-        parseOrderedDict('root', j)
-        
+
+        parseOrderedDict("root", j)
+
         return words
 
     def intersect_manifest(self):
@@ -193,22 +190,22 @@ class APK_Intersection:
         """
         nums = {
             # min max
-            'uses-permission': [0xFFFFFFFF, 0],
-            'activity': [0xFFFFFFFF, 0],
-            'receiver': [0xFFFFFFFF, 0],
-            'service': [0xFFFFFFFF, 0],
-            'provider': [0xFFFFFFFF, 0],
-            'version_code': [0xFFFFFFFF, 0],
+            "uses-permission": [0xFFFFFFFF, 0],
+            "activity": [0xFFFFFFFF, 0],
+            "receiver": [0xFFFFFFFF, 0],
+            "service": [0xFFFFFFFF, 0],
+            "provider": [0xFFFFFFFF, 0],
+            "version_code": [0xFFFFFFFF, 0],
         }
 
         is_first = True
         words = {
-            'application': set(),
-            'activity': set(),
-            'activity-alias': set(),
-            'receiver': set(),
-            'service': set(),
-            'provider': set(),
+            "application": set(),
+            "activity": set(),
+            "activity-alias": set(),
+            "receiver": set(),
+            "service": set(),
+            "provider": set(),
         }
 
         words2 = set()
@@ -216,11 +213,14 @@ class APK_Intersection:
         same = None
         for apk in self.apks:
             mani = apk.get_mini_mani()
-            mani = re.sub(r' \w+:', ' android:', mani)# 修复异常节点
-            mani = mani.replace('android:android="http://schemas.android.com/apk/res/android"', 'xmlns:android="http://schemas.android.com/apk/res/android"')
-            
+            mani = re.sub(r" \w+:", " android:", mani)  # 修复异常节点
+            mani = mani.replace(
+                'android:android="http://schemas.android.com/apk/res/android"',
+                'xmlns:android="http://schemas.android.com/apk/res/android"',
+            )
+
             if not mani:
-                print(apk.apk_path, 'no mani')
+                print(apk.apk_path, "no mani")
                 continue
 
             ms = self.process_mani(mani)
@@ -232,47 +232,47 @@ class APK_Intersection:
             application = apk.get_application()
             app_words = set()
             if application:
-                app_words = APK_Intersection.gen_words(application.split('.'))
+                app_words = APK_Intersection.gen_words(application.split("."))
             if is_first:
-                words['application'] = app_words
+                words["application"] = app_words
             else:
-                words['application'] &= app_words
+                words["application"] &= app_words
 
             pieces = set()
             for item in self.activity_matcher.finditer(mani):
-                piece = APK_Intersection.gen_words(item.groups()[0].split('.'))
+                piece = APK_Intersection.gen_words(item.groups()[0].split("."))
                 pieces |= piece
             if is_first:
-                words['activity'] = pieces
+                words["activity"] = pieces
             else:
-                words['activity'] &= pieces
+                words["activity"] &= pieces
 
             pieces = set()
             for item in self.receiver_matcher.finditer(mani):
-                piece = APK_Intersection.gen_words(item.groups()[0].split('.'))
+                piece = APK_Intersection.gen_words(item.groups()[0].split("."))
                 pieces |= piece
             if is_first:
-                words['receiver'] = pieces
+                words["receiver"] = pieces
             else:
-                words['receiver'] &= pieces
+                words["receiver"] &= pieces
 
             pieces = set()
             for item in self.service_matcher.finditer(mani):
-                piece = APK_Intersection.gen_words(item.groups()[0].split('.'))
+                piece = APK_Intersection.gen_words(item.groups()[0].split("."))
                 pieces |= piece
             if is_first:
-                words['service'] = pieces
+                words["service"] = pieces
             else:
-                words['service'] &= pieces
+                words["service"] &= pieces
 
             pieces = set()
             for item in self.provider_matcher.finditer(mani):
-                piece = APK_Intersection.gen_words(item.groups()[0].split('.'))
+                piece = APK_Intersection.gen_words(item.groups()[0].split("."))
                 pieces |= piece
             if is_first:
-                words['provider'] = pieces
+                words["provider"] = pieces
             else:
-                words['provider'] &= pieces
+                words["provider"] &= pieces
 
             if is_first:
                 is_first = False
@@ -301,6 +301,7 @@ class APK_Intersection:
         真正的字符串，不包含类名、方法命。
         特征方法中定义的、使用的字符串。
         """
+
         def to_set(data):
             """通过类名，过滤不必要的字符串
 
@@ -340,6 +341,7 @@ class APK_Intersection:
         真正的字符串不包含类名、方法名。
         特征方法中定义的、使用的字符串。
         """
+
         def to_set(data):
             strs = set()
             for key, value in data.items():
@@ -391,10 +393,10 @@ class APK_Intersection:
             opcodes = apk.get_opcodes()
             if is_first:
                 for item in opcodes:
-                    super_class = item['super_class']
-                    if is_obj and super_class != 'java/lang/Object':
+                    super_class = item["super_class"]
+                    if is_obj and super_class != "java/lang/Object":
                         continue
-                    if not is_obj and super_class == 'java/lang/Object':
+                    if not is_obj and super_class == "java/lang/Object":
                         continue
                     common_opcodes.append(item)
                 is_first = False
@@ -402,14 +404,14 @@ class APK_Intersection:
 
             next_common_opcodes = []
             for item1 in opcodes:
-                sup1 = item1['super_class']
-                if is_obj and sup1 != 'java/lang/Object':
+                sup1 = item1["super_class"]
+                if is_obj and sup1 != "java/lang/Object":
                     continue
-                if not is_obj and sup1 == 'java/lang/Object':
+                if not is_obj and sup1 == "java/lang/Object":
                     continue
 
-                proto1 = item1['proto']
-                opcs1 = item1['opcodes']
+                proto1 = item1["proto"]
+                opcs1 = item1["opcodes"]
                 len1 = len(opcs1)
 
                 if len1 < 10:
@@ -419,9 +421,9 @@ class APK_Intersection:
                 max_ratio = 0
                 max_len = 0
                 for item2 in common_opcodes:
-                    sup2 = item2['super_class']
-                    proto2 = item2['proto']
-                    opcs2 = item2['opcodes']
+                    sup2 = item2["super_class"]
+                    proto2 = item2["proto"]
+                    opcs2 = item2["opcodes"]
 
                     if (sup1, proto1, opcs1) == (sup2, proto2, opcs2):
                         if item2 not in next_common_opcodes:
@@ -436,16 +438,15 @@ class APK_Intersection:
                             max_item = item2
 
                 if max_ratio:
-                    com_opcs = wildcard.get_wildcards(
-                        opcs1, max_item['opcodes'])
+                    com_opcs = wildcard.get_wildcards(opcs1, max_item["opcodes"])
                     len2 = len(com_opcs)
                     if len1 > len2:
                         max_len = len1
                     else:
                         max_len = len2
 
-                    max_item['max_len'] = max_len
-                    max_item['opcodes'] = com_opcs
+                    max_item["max_len"] = max_len
+                    max_item["opcodes"] = com_opcs
                     next_common_opcodes.append(max_item)
 
             common_opcodes = next_common_opcodes
@@ -489,7 +490,7 @@ class APK_Intersection:
             tmps = set()
             for item in pns:
                 for sr in arsc.get_string_resources(item):
-                    tmps.add((sr['name'], sr['value']))
+                    tmps.add((sr["name"], sr["value"]))
 
             if flag:
                 flag = False
@@ -505,7 +506,7 @@ class APK_Intersection:
         for apk in self.apks:
             tmps = set()
             for item in apk.get_files():
-                tmps.add((item['name'], item['crc']))
+                tmps.add((item["name"], item["crc"]))
 
             if flag1:
                 files1 = tmps
@@ -518,7 +519,7 @@ class APK_Intersection:
         for apk in self.apks:
             tmps = set()
             for item in apk.get_files():
-                tmps.add(item.get('name'))
+                tmps.add(item.get("name"))
 
             if flag1:
                 files2 = tmps
@@ -531,7 +532,7 @@ class APK_Intersection:
         for apk in self.apks:
             tmps = set()
             for item in apk.get_files():
-                tmps.add(item['crc'])
+                tmps.add(item["crc"])
 
             if flag1:
                 files3 = tmps

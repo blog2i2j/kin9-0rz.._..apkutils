@@ -25,11 +25,20 @@ class TestARSC(object):
         str_res = self.arsc.get_strings_resources()
         soup = BeautifulSoup(str_res, "lxml-xml")
 
-        assert soup.packages.package["name"] == "com.example.hellojni"
-        assert soup.packages.package.get("name") == "com.example.hellojni"
-        assert soup.select_one("package")["name"] == "com.example.hellojni"
+        packages = soup.packages
+        assert packages is not None
+        package = packages.select_one("package")
+        assert package is not None
+        assert package["name"] == "com.example.hellojni"
+        assert package.get("name") == "com.example.hellojni"
 
-        assert soup.select_one('string[name="action_settings"]').string == "Settings"
+        package_node = soup.select_one("package")
+        assert package_node is not None
+        assert package_node["name"] == "com.example.hellojni"
+
+        setting = soup.select_one('string[name="action_settings"]')
+        assert setting is not None
+        assert setting.string == "Settings"
 
     def test_get_id_resources(self):
         res = self.arsc.get_id_resources(self.package)

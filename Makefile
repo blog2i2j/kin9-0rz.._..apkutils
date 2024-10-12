@@ -5,9 +5,9 @@ help:
 sync: ## sync
 	rye sync
 test: sync ## run test
-	rye pytest --benchmark-skip
+	rye test -- --benchmark-skip
 bench: sync ## run benchmark
-	rye pytest --benchmark-only
+	rye test -- --benchmark-only
 build: ## build
 	rm -rf dist
 	rye build --wheel

@@ -1,10 +1,7 @@
 import binascii
-import hashlib
 import io
 import re
 import traceback
-import xml
-from xml.parsers.expat import ExpatError
 
 import pyftype
 from bs4 import BeautifulSoup
@@ -13,7 +10,6 @@ from lxml import etree
 from apkutils import apkfile
 from apkutils.axml import ARSCParser, AXMLPrinter
 from apkutils.cert import Certificate
-from apkutils.dex.dalvik import OPCODES
 from apkutils.dex.dexparser import DexFile
 
 # 6E invoke-virtual 110
@@ -36,19 +32,19 @@ class APK:
     def __init__(self):
         self.apk_path = None
         self.dex_files = []
-        self.children = None
+        self.children = []
         self.manifest = ""
-        self._dex_strings = None  # 字符串
+        self._dex_strings = []  # 字符串
         self._dex_hex_strings = None  # 16进制字符串
         self.opcodes = None
         self.certs = {}
         self.arsc = None
-        self.strings_refx = []
-        self._app_icons = []
+        self.strings_refx: dict | None = None
+        self._app_icons: list | None = None
         self._methods = None
         self.trees = None  # 代码结构序列字典
         self._classes = None
-        self._methods_refx = None
+        self._methods_refx = {}
         self._package_name = ""  # 包名
         self._app_name = None
         self._application_icon_addr = None
@@ -387,7 +383,7 @@ class APK:
         :rtype: [dict]
         """
         if self._methods_refx is None:
-            self._init_methods_refx()
+            self._init_dex_methods_refx()
         return self._methods_refx
 
     def _init_dex_methods_refx(self):
@@ -449,6 +445,8 @@ class APK:
             print(e)
 
     def get_dex_strings(self):
+        if self._dex_strings == []:
+            self._init_dex_strings()
         return self._dex_strings
 
     def _init_dex_strings(self):
@@ -521,18 +519,17 @@ class APK:
 
     # * -------------------------- 子文件 --------------------------------------
 
-    def get_subfiles(self):
+    def get_subfiles(self) -> list:
         """获取子文件
 
         :return: 子文件列表
         :rtype: _type_
         """
-        if not self.children:
+        if self.children == []:
             self._init_children()
         return self.children
 
     def _init_children(self):
-        self.children = []
         try:
             for name in self.afile.namelist():
                 try:
@@ -569,13 +566,15 @@ class APK:
         return self.arsc
 
     def get_app_icons(self):
-        if self._app_icons is []:
+        if self._app_icons is not None:
             return self._app_icons
+
         self._init_app_icons()
         return self._app_icons
 
     def _init_app_icons(self):
         """仅获取Appliction的图标"""
+        self._app_icons = []
         if self.arsc is None:
             return
 
@@ -595,8 +594,12 @@ class APK:
             )
             public_tag = soup.select_one('public[id="{}"]'.format(addr))
 
+            if public_tag is None:
+                return
+
             icon_name = public_tag.get("name")
             icon_path = public_tag.get("type")
+
             for f in files:
                 name = f["name"]
                 if icon_name in name and icon_path in name:
@@ -627,6 +630,8 @@ class APK:
                 self.arsc.get_string_resources(self._package_name), "lxml-xml"
             )
             tag = soup.select_one('string[name="{}"]'.format(self._string_res_app_name))
+            if tag is None:
+                return
             self._app_name = tag.text
 
         except Exception as e:

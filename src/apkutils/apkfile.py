@@ -5,6 +5,7 @@ Read and write APK files.
 
 * 根据实际情况修改。
 """
+
 import binascii
 import importlib
 import io
@@ -548,6 +549,7 @@ class _ZipDecrypter:
 
     def _crc32(self, ch, crc):
         """Compute the CRC32 primitive on one byte."""
+        assert self.crctable is not None
         return ((crc >> 8) & 0xFFFFFF) ^ self.crctable[(crc ^ ch) & 0xFF]
 
     def __init__(self, pwd):
@@ -751,7 +753,7 @@ class ZipExtFile(io.BufferedIOBase):
     MIN_READ_SIZE = 4096
 
     # Search for universal newlines or line chunks.
-    PATTERN = re.compile(br"^(?P<chunk>[^\r\n]+)|(?P<newline>\n|\r\n?)")
+    PATTERN = re.compile(rb"^(?P<chunk>[^\r\n]+)|(?P<newline>\n|\r\n?)")
 
     def __init__(self, fileobj, mode, zipinfo, decrypter=None, close_fileobj=False):
         self._fileobj = fileobj
@@ -1245,7 +1247,7 @@ class ZipFile:
 
     def testzip(self):
         """Read all the files and check the CRC."""
-        chunk_size = 2 ** 20
+        chunk_size = 2**20
         for zinfo in self.filelist:
             try:
                 # Read by chunks, to avoid an OverflowError or a
@@ -1454,15 +1456,15 @@ class ZipFile:
                 print("{} 文件名太长，跳过解压。".format(os.path.sep.join(arr)))
                 return
         # if len(name) > 255:
-            # extension = os.path.splitext(name)[1]
-            # name = "too_long_" + str(crc32(name.encode("utf-8"))) + extension
-            # arr = arr[:-1]
-            # arr.append(name)
-            # arcname = os.path.sep.join(arr)
+        # extension = os.path.splitext(name)[1]
+        # name = "too_long_" + str(crc32(name.encode("utf-8"))) + extension
+        # arr = arr[:-1]
+        # arr.append(name)
+        # arcname = os.path.sep.join(arr)
 
         targetpath = os.path.join(targetpath, arcname)
         targetpath = os.path.normpath(targetpath)
-        
+
         # Create all upper directories if necessary.
         upperdirs = os.path.dirname(targetpath)
         if upperdirs and not os.path.exists(upperdirs):

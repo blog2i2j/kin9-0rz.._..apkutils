@@ -1,4 +1,5 @@
 """Console script for apkutils."""
+
 import sys
 
 import click
@@ -13,6 +14,7 @@ from apkutils import APK, __version__, apkfile
 @click.version_option(__version__)
 def main():
     pass
+
 
 # TODO 增加解压命令
 @main.command()
@@ -35,26 +37,25 @@ def unzip(path, t, e, output):
     else:
         with apkfile.ZipFile(path, "r") as zf:
             zf.printdir()
-    
+
 
 @main.command()
 @click.argument("path")
 def manifest(path):
     """打印清单"""
-    apk = APK.from_file(path).parse_resouce()
+    apk = APK.from_file(path).parse_resource()
     manifest = apk.get_manifest()
     if manifest is None:
         print("Manifest is None!")
         return
 
-    sys.stdout.write(
-        highlight(manifest, get_lexer_by_name("xml"), TerminalFormatter())
-    )
-    
+    sys.stdout.write(highlight(manifest, get_lexer_by_name("xml"), TerminalFormatter()))
+
     print("\nPackage: {}".format(apk.get_package_name()))
     print("Main Activities:")
     for item in apk.get_manifest_main_activities():
         print(" - {}".format(item))
+
 
 @main.command()
 @click.argument("path")
@@ -66,7 +67,7 @@ def manifest(path):
 )
 def arsc(path, res_type):
     """打印arsc"""
-    apk = APK.from_file(path).parse_resouce()
+    apk = APK.from_file(path).parse_resource()
     arsc = apk.get_arsc()
     if arsc is None:
         print("ARSC解析失败")
@@ -107,7 +108,8 @@ def arsc(path, res_type):
 def strings(path):
     """打印Dex中的字符串"""
     apk = APK.from_file(path).parse_dex()
-    s = sorted(apk.get_dex_strings())
+    dex_strings = apk.get_dex_strings()
+    s = sorted(dex_strings)
     for item in s:
         print(item)
 
@@ -117,7 +119,8 @@ def strings(path):
 def files(path):
     """打印文件"""
     apk = APK.from_file(path)
-    for item in apk.get_subfiles():
+    files = apk.get_subfiles()
+    for item in files:
         print(item)
 
 
