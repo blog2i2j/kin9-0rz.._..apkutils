@@ -7,11 +7,10 @@ from pygments import highlight
 from pygments.formatters.terminal import TerminalFormatter
 from pygments.lexers import get_lexer_by_name
 
-from apkutils import APK, __version__, apkfile
+from apkutils import APK, apkfile
 
 
 @click.group()
-@click.version_option(__version__)
 def main():
     pass
 

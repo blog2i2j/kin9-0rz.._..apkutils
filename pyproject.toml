@@ -1,6 +1,6 @@
 [project]
 name = "apkutils"
-version = "1.5.5"
+version = "1.5.6"
 description = "一个APK解析库"
 authors = [{ name = "kin9-0rz", email = "kin9-0rz@outlook.com" }]
 readme = "README.md"
@@ -30,6 +30,9 @@ requires-python = ">=3.8,<4.0.0"
 
 [project.urls]
 Repository = "https://gitee.com/kin9-0rz/apkutils"
+
+[project.scripts]
+apkutils = 'apkutils.cli:main'
 
 [tool]
 
