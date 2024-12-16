@@ -1945,14 +1945,15 @@ class ARSCParser:
 
     def get_resource_dimen(self, ate):
         data = ate.key.get_data()
-        if len(DIMENSION_UNITS) < (data & COMPLEX_UNIT_MASK):
+        value = data & COMPLEX_UNIT_MASK
+        if len(DIMENSION_UNITS) <= value:
             return [ate.get_value(), data]
         else:
             return [
                 ate.get_value(),
                 "{}{}".format(
                     complexToFloat(data),
-                    DIMENSION_UNITS[data & COMPLEX_UNIT_MASK],
+                    DIMENSION_UNITS[value],
                 ),
             ]
 
@@ -2604,8 +2605,9 @@ class ResTableTypeSpec:
 
         if self.res0 != 0:
             raise ResParserError("res0 must be zero!")
-        if self.res1 != 0:
-            raise ResParserError("res1 must be zero!")
+        # if self.res1 != 0:
+        # print("-> res1 must be zero!")
+        # raise ResParserError("res1 must be zero!")
 
         self.entryCount = unpack("<I", buff.read(4))[0]
 
