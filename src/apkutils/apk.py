@@ -34,7 +34,7 @@ class APK:
         self.apk_path = None
         self.dex_files = []
         self.children = []
-        self.manifest = ""
+        self.manifest: str = ""
         self._dex_strings = []  # 字符串
         self._dex_hex_strings = None  # 16进制字符串
         self.opcodes = None
@@ -92,7 +92,7 @@ class APK:
     # * -------------------------- 清单 --------------------------------------
 
     def get_manifest(self):
-        if self.manifest is None:
+        if self.manifest == "":
             self._init_manifest()
         return self.manifest
 
@@ -126,7 +126,7 @@ class APK:
         soup = BeautifulSoup(self.manifest, "lxml-xml")
         manifest_tag = soup.manifest
         if manifest_tag is not None:
-            self._package_name = manifest_tag.get("package", "")
+            self._package_name = str(manifest_tag.get("package", ""))
             self._version_code = manifest_tag.get("android:versionCode")
             self._version_name = manifest_tag.get("android:versionName")
 
@@ -143,17 +143,17 @@ class APK:
             return
         self._application = application_tag.get("android:name", "")
         self._application_icon_addr = (
-            application_tag.get("android:icon", "").lower().replace("@", "0x")
+            str(application_tag.get("android:icon", "")).lower().replace("@", "0x")
         )
         self._application_label_id = (
-            application_tag.get("android:label", "").lower().replace("@", "0x")
+            str(application_tag.get("android:label", "")).lower().replace("@", "0x")
         )
 
         self._activities_icon_addrs = []
 
         def find_activities(tag):
             for item in soup.select(tag):
-                name = item.get("android:name", "none")
+                name = str(item.get("android:name", "none"))
                 if name.startswith("."):
                     name = self._package_name + name
 
@@ -167,7 +167,7 @@ class APK:
                 if "android.intent.category.LAUNCHER" not in content:
                     continue
                 self._main_activities.append(name)
-                if addr := item.get("android:icon"):
+                if addr := str(item.get("android:icon", "")):
                     self._activities_icon_addrs.append(addr.lower().replace("@", "0x"))
 
                 ta = item.get("android:targetActivity", None)
@@ -285,13 +285,13 @@ class APK:
                     break
         return strings
 
-    def xref(self, mtd: str):
+    def xref(self, _mtd: str):
         """获取所有的引用方法 pkg/cls->mtd()
 
         Args:
             mtd (str): _description_
         """
-        mtd = mtd.encode("utf-8")
+        mtd = _mtd.encode("utf-8")
 
         if not self.dex_files:
             self._init_dex_files()
@@ -564,13 +564,14 @@ class APK:
             print(e)
 
     def get_arsc(self):
+        if self.arsc is None:
+            self._init_arsc()
         return self.arsc
 
     def get_app_icons(self):
-        if self._app_icons is not None:
-            return self._app_icons
+        if self._app_icons is None:
+            self._init_app_icons()
 
-        self._init_app_icons()
         return self._app_icons
 
     def _init_app_icons(self):
