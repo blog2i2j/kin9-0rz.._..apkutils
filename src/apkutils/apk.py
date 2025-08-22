@@ -579,7 +579,8 @@ class APK:
             if ARSC_NAME in self.afile.namelist():
                 data = self.afile.read(ARSC_NAME)
                 self.arsc = ARSCParser(data)
-                self._package_name = self.arsc.get_packages_names()[0]
+                # FIXME: 这个包名可能与清单的不一样
+                # self._package_name = self.arsc.get_packages_names()[0]
         except Exception as e:
             print(self.apk_path)
             print(e)
